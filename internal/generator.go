@@ -156,7 +156,8 @@ func GenerateMermaidFromInterfaces(filePath string) (map[string]string, error) {
 										toState := matches[2]
 										for _, fromState := range fromStates {
 											fromState = strings.TrimSpace(fromState)
-											chart.WriteString(fmt.Sprintf("    %s -->|%s| %s\n", fromState, methodName, toState))
+											chart.WriteString(fmt.Sprintf("    %s --> %s\n", fromState, toState))
+
 										}
 									}
 								}
