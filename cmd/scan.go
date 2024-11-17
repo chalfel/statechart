@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/chalfel/statechart/internal"
 	"github.com/spf13/cobra"
@@ -15,19 +16,19 @@ var outputDir string
 
 var scanCmd = &cobra.Command{
 	Use:   "scan",
-	Short: "Scan a project directory for state machine files and generate Mermaid.js diagrams",
+	Short: "Scan a project directory for state machine interfaces and generate Mermaid.js diagrams",
 	Run: func(cmd *cobra.Command, args []string) {
 		if projectDir == "" {
 			log.Fatal("Error: --project flag is required")
 		}
 
-		// Scan for files
+		// Scan for .go files in the project directory
 		files := []string{}
 		err := filepath.Walk(projectDir, func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
 			}
-			if filepath.Ext(path) == ".go" && filepath.Base(path[len(path)-16:]) == "_state_machine.go" {
+			if filepath.Ext(path) == ".go" {
 				files = append(files, path)
 			}
 			return nil
@@ -43,22 +44,24 @@ var scanCmd = &cobra.Command{
 			}
 		}
 
-		// Generate Mermaid diagrams for each file
+		// Process each file
 		for _, file := range files {
-			diagram, err := internal.GenerateMermaidFromFile(file)
+			diagrams, err := internal.GenerateMermaidFromInterfaces(file)
 			if err != nil {
-				log.Printf("Error generating Mermaid chart for %s: %v\n", file, err)
+				log.Printf("Error processing file %s: %v\n", file, err)
 				continue
 			}
 
-			outputFile := filepath.Join(outputDir, filepath.Base(file)+".mmd")
-			err = os.WriteFile(outputFile, []byte(diagram), 0644)
-			if err != nil {
-				log.Printf("Error writing Mermaid chart for %s: %v\n", file, err)
-				continue
-			}
+			for interfaceName, diagram := range diagrams {
+				outputFile := filepath.Join(outputDir, strings.ToLower(interfaceName)+".mmd")
+				err := os.WriteFile(outputFile, []byte(diagram), 0644)
+				if err != nil {
+					log.Printf("Error writing diagram for %s: %v\n", interfaceName, err)
+					continue
+				}
 
-			fmt.Printf("Generated Mermaid chart for %s -> %s\n", file, outputFile)
+				fmt.Printf("Generated Mermaid chart for %s -> %s\n", interfaceName, outputFile)
+			}
 		}
 	},
 }
