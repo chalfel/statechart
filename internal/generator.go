@@ -102,7 +102,7 @@ func extractCommentFromFile(fset *token.FileSet, filePath string, pos token.Pos)
 
 	scanner := bufio.NewScanner(f)
 	targetLine := positionToLineNumber(fset, pos) - 1 // Line preceding the method position
-	currentLine := 1
+	currentLine := 0
 
 	for scanner.Scan() {
 		line := scanner.Text()
