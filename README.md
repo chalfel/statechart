@@ -79,9 +79,9 @@ type ArchiveStateMachine interface {
 
 ```mermaid
 stateDiagram-v2
-    Pending -->|Block| Blocked
-    Registered -->|Block| Blocked
-    Pending -->|Confirm| Confirmed
+    Pending --> Blocked
+    Registered --> Blocked
+    Pending --> Confirmed
 ```
 
 #### `charts/archivestatemachine.mmd`
