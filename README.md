@@ -1,94 +1,125 @@
-Here's a `README.md` for your project:
-
----
-
 # StateChart Generator
 
-`StateChart` is a command-line tool that scans a Go project for `_state_machine.go` files, parses state machine definitions, and generates **Mermaid.js** diagrams to visually represent the state transitions.
+`StateChart` is a command-line tool that scans Go projects for interfaces named `XStateMachine` (e.g., `OrderStateMachine`), parses their state transition definitions, and generates **Mermaid.js** diagrams to visualize state transitions.
 
 ## Features
 
-- **Automatic Scanning**: Finds all `_state_machine.go` files in the specified project directory.
-- **Mermaid.js Output**: Generates `stateDiagram-v2` charts, compatible with tools like GitHub, Notion, and VSCode.
-- **Customizable Output**: Save generated charts to a specific directory.
-- **Lightweight**: Easily integrates into your documentation or CI/CD pipeline.
+- **Automatic Interface Detection**: Finds all interfaces named `XStateMachine` in `.go` files across your project.
+- **Mermaid.js Output**: Generates `stateDiagram-v2` diagrams compatible with tools like GitHub, Notion, and VSCode.
+- **Handles Inline Comments**: Extracts transition definitions from method comments.
+- **Multi-File Support**: Processes multiple files and generates diagrams for each `XStateMachine` interface.
+- **Customizable Output**: Save generated diagrams to a specified directory.
 
 ---
 
 ## Installation
 
-Ensure you have Go installed, then install the tool using:
+Ensure you have Go installed, then install the tool:
 
 ```bash
-go install github.com/chalfel/statechart@latest
+go install github.com/yourusername/statechart/cmd@latest
 ```
 
 ---
 
 ## Usage
 
-### Scan an Entire Project
+### Generate a Diagram for a Single File
 
-To scan a project for all `_state_machine.go` files and generate Mermaid.js diagrams:
+To generate a Mermaid.js diagram from a single Go file:
 
 ```bash
-statechart -project /path/to/project -output /path/to/output/charts
+statechart generate --file path/to/file.go --output path/to/output/file.mmd
 ```
 
-- `-project`: Path to the root of your project (default is the current directory).
-- `-output`: Path to save the generated Mermaid charts (default is `./charts`).
+- `--file`: Path to the Go file to process.
+- `--output`: Path to save the Mermaid.js diagram (optional).
+
+### Scan an Entire Project
+
+To scan a project for all `XStateMachine` interfaces and generate diagrams:
+
+```bash
+statechart scan --project path/to/project --output path/to/output/directory
+```
+
+- `--project`: Path to the root directory of your project (default: current directory).
+- `--output`: Directory to save the generated Mermaid diagrams (default: `./charts`).
 
 ---
 
 ## Example
 
-### Input: `_state_machine.go` File
+### Input File: `order.go`
 
 ```go
 package order
 
-type OrderState string
-
 const (
-	StatePending   OrderState = "Pending"
-	StateConfirmed OrderState = "Confirmed"
-	StateShipped   OrderState = "Shipped"
-	StateDelivered OrderState = "Delivered"
+	StatePending   = "Pending"
+	StateConfirmed = "Confirmed"
+	StateBlocked   = "Blocked"
 )
 
+// Pending, Registered -> Blocked
 type OrderStateMachine interface {
-	Confirm() error   // Pending -> Confirmed
-	Ship() error      // Confirmed -> Shipped
-	Deliver() error   // Shipped -> Delivered
-	Cancel() error    // Pending, Confirmed, Shipped -> Cancelled
+	Block() error // Pending, Registered -> Blocked
+	Confirm() error // Pending -> Confirmed
+}
+
+// Confirmed -> Archived
+type ArchiveStateMachine interface {
+	Archive() error // Confirmed -> Archived
 }
 ```
 
-### Output: Mermaid.js Diagram
+### Generated Diagrams
 
-The tool generates the following diagram:
+#### `charts/orderstatemachine.mmd`
 
 ```mermaid
 stateDiagram-v2
+    Pending -->|Block| Blocked
+    Registered -->|Block| Blocked
     Pending -->|Confirm| Confirmed
-    Confirmed -->|Ship| Shipped
-    Shipped -->|Deliver| Delivered
-    Pending -->|Cancel| Cancelled
-    Confirmed -->|Cancel| Cancelled
-    Shipped -->|Cancel| Cancelled
 ```
 
-Saved as `charts/order_state_machine.go.mmd`.
+#### `charts/archivestatemachine.mmd`
+
+```mermaid
+stateDiagram-v2
+    Confirmed -->|Archive| Archived
+```
 
 ---
 
-## Integrate into CI/CD
+## Output Directory Structure
 
-You can use the tool in your CI/CD pipeline to automatically generate state diagrams:
+For a project with multiple `XStateMachine` interfaces across files, the output directory will look like:
 
-```bash
-statechart -project . -output ./charts
 ```
+charts/
+├── orderstatemachine.mmd
+├── archivestatemachine.mmd
+└── userstatemachine.mmd
+```
+
+---
+
+## Mermaid.js Integration
+
+Mermaid.js diagrams can be embedded into Markdown files for documentation:
+
+```markdown
+```mermaid
+stateDiagram-v2
+    Pending -->|Block| Blocked
+    Registered -->|Block| Blocked
+    Pending -->|Confirm| Confirmed
+```
+```
+
+Use this in tools like GitHub, Notion, or VSCode to visualize the diagrams.
 
 ---
 
@@ -97,30 +128,32 @@ statechart -project . -output ./charts
 ### Clone the Repository
 
 ```bash
-git clone https://github.com/chalfel/statechart.git
+git clone https://github.com/yourusername/statechart.git
 cd statechart
 ```
 
 ### Run Locally
 
 ```bash
-go run main.go -project /path/to/project -output /path/to/output/charts
+go run cmd/statechart.go scan --project /path/to/project --output ./charts
 ```
 
 ### Build the Tool
 
 ```bash
-go build -o statechart main.go
+go build -o statechart cmd/statechart.go
 ```
 
 ---
 
 ## Contributing
 
+Contributions are welcome! Here’s how you can help:
+
 1. Fork the repository.
 2. Create a feature branch: `git checkout -b feature-name`.
 3. Commit your changes: `git commit -m "Add feature"`.
-4. Push to the branch: `git push origin feature-name`.
+4. Push to your branch: `git push origin feature-name`.
 5. Open a pull request.
 
 ---
@@ -133,8 +166,8 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## Feedback and Support
 
-If you have questions or suggestions, feel free to open an issue or contact [chalfel](https://github.com/chalfel).
+If you have questions or suggestions, feel free to open an issue or contact [yourusername](https://github.com/yourusername).
 
 --- 
 
-This `README.md` should provide a clear understanding of the tool's purpose, usage, and contribution guidelines. 🚀
+This updated `README.md` provides detailed usage instructions, updated examples, and reflects the new functionality of scanning all `.go` files for `XStateMachine` interfaces. 🚀
