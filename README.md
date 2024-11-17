@@ -79,16 +79,16 @@ type ArchiveStateMachine interface {
 
 ```mermaid
 stateDiagram-v2
-    Pending --> Blocked
-    Registered --> Blocked
-    Pending --> Confirmed
+    Pending --> Blocked : Block()
+    Registered --> Blocked : Block()
+    Pending --> Confirmed : Confirm()
 ```
 
 #### `charts/archivestatemachine.mmd`
 
 ```mermaid
 stateDiagram-v2
-    Confirmed -->|Archive| Archived
+    Confirmed --> Archived : Archive()
 ```
 
 ---
@@ -113,9 +113,9 @@ Mermaid.js diagrams can be embedded into Markdown files for documentation:
 ```markdown
 ```mermaid
 stateDiagram-v2
-    Pending -->|Block| Blocked
-    Registered -->|Block| Blocked
-    Pending -->|Confirm| Confirmed
+    Pending --> Blocked : Block()
+    Registered --> Blocked : Block()
+    Pending --> Confirmed : Confirm()
 ```
 ```
 
